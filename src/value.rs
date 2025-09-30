@@ -172,7 +172,6 @@ use crate::om::IAsset;
 /// See the [module-level](index.html) documentation.
 pub struct Value {
 	data: VALUE,
-	//	tmp: *mut Value,
 }
 
 /// `sciter::Value` can be transferred across thread boundaries.
@@ -181,14 +180,8 @@ unsafe impl Send for Value {}
 impl Value {
 	/// Return a new Sciter value object ([`undefined`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined)).
 	pub fn new() -> Value {
-		// let tmp_val = Value {
-		// 	data: VALUE::new(),
-		// 	tmp: std::ptr::null_mut(),
-		// };
-
 		Value {
 			data: VALUE::new(),
-			// tmp: Box::into_raw(Box::new(tmp_val)),
 		}
 	}
 
@@ -588,13 +581,6 @@ impl Value {
 			&mut *(*pptr)
 		}
 	}
-	// fn ensure_tmp(&mut self) -> &mut Value {
-	// 	if self.tmp.is_null() {
-	// 		let tmp = Box::new(Value::new());
-	// 		self.tmp = Box::into_raw(tmp);
-	// 	}
-	// 	return unsafe { &mut *self.tmp };
-	// }
 
 	/// Returns `true` is `self` is `undefined` or has zero elements.
 	pub fn is_empty(&self) -> bool {
