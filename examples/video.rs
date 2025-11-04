@@ -3,8 +3,8 @@
 extern crate sciter;
 
 use sciter::dom::event::*;
-use sciter::{Element, HELEMENT};
-
+use sciter::{Element, EVENT_GROUPS, HELEMENT, PHASE_MASK};
+use sciter::dom::BEHAVIOR_EVENTS;
 use sciter::video::{fragmented_video_destination, AssetPtr};
 
 struct VideoGen {

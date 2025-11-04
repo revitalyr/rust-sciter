@@ -1,15 +1,18 @@
 //! Windowless mode example (for Sciter.Lite build).
-extern crate sciter;
-extern crate winit;
-extern crate winapi;
 extern crate raw_window_handle;
+extern crate sciter;
+extern crate winapi;
+extern crate winit;
 
-use winit::event::{Event, WindowEvent, ElementState, MouseButton};
-use winit::event_loop::{EventLoop, ControlFlow};
+use winit::event::{ElementState, Event, MouseButton, WindowEvent};
+use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::WindowBuilder;
 
-
 fn main() {
+	for argument in std::env::args_os() {
+		println!("{argument:?}");
+	}
+
 	if let Some(arg) = std::env::args().nth(1) {
 		println!("loading sciter from {:?}", arg);
 		if let Err(_) = sciter::set_options(sciter::RuntimeOptions::LibraryPath(&arg)) {
@@ -35,9 +38,15 @@ fn main() {
 	sciter::set_options(sciter::RuntimeOptions::ScriptFeatures(0xFF)).unwrap();
 
 	// create an engine instance with an opaque pointer as an identifier
-	use sciter::windowless::{Message, handle_message};
+	use sciter::windowless::{handle_message, Message};
 	let scwnd = { &wnd as *const _ as sciter::types::HWINDOW };
-	handle_message(scwnd, Message::Create { backend: sciter::types::GFX_LAYER::SKIA_OPENGL, transparent: false, });
+	handle_message(
+		scwnd,
+		Message::Create {
+			backend: sciter::types::GFX_LAYER::SKIA_OPENGL,
+			transparent: false,
+		},
+	);
 
 	#[cfg(windows)]
 	{
@@ -78,8 +87,8 @@ fn main() {
 	}
 
 	// events processing
-	use sciter::windowless::{MouseEvent, KeyboardEvent, RenderEvent};
-	use sciter::windowless::{MOUSE_BUTTONS, MOUSE_EVENTS, KEYBOARD_STATES, KEY_EVENTS};
+	use sciter::windowless::{KeyboardEvent, MouseEvent, RenderEvent};
+	use sciter::windowless::{KEYBOARD_STATES, KEY_EVENTS, MOUSE_BUTTONS, MOUSE_EVENTS};
 
 	let mut mouse_button = MOUSE_BUTTONS::NONE;
 	let mut mouse_pos = (0, 0);
@@ -93,19 +102,19 @@ fn main() {
 	std::thread::sleep(std::time::Duration::from_millis(0));
 
 	// Sciter processes timers and fading effects here
-	handle_message(scwnd, Message::Heartbit {
-		milliseconds: std::time::Instant::now().duration_since(startup).as_millis() as u32,
-	});
+	handle_message(
+		scwnd,
+		Message::Heartbit {
+			milliseconds: std::time::Instant::now().duration_since(startup).as_millis() as u32,
+		},
+	);
 
 	// the actual event loop polling
 
 	events.run(move |event, _, control_flow| {
 		match event {
-
 			Event::RedrawRequested(_) => {
-
-				let on_render = move |bitmap_area: &sciter::types::RECT, bitmap_data: &[u8]|
-				{
+				let on_render = move |bitmap_area: &sciter::types::RECT, bitmap_data: &[u8]| {
 					#[cfg(unix)]
 					{
 						let _ = bitmap_area;
@@ -116,9 +125,9 @@ fn main() {
 					// Windows-specific bitmap rendering on the window
 					#[cfg(windows)]
 					{
-						use winapi::um::winuser::*;
-						use winapi::um::wingdi::*;
 						use winapi::shared::minwindef::LPVOID;
+						use winapi::um::wingdi::*;
+						use winapi::um::winuser::*;
 
 						let hwnd = match window_handle {
 							raw_window_handle::RawWindowHandle::Windows(data) => data.hwnd as winapi::shared::windef::HWND,
@@ -151,7 +160,21 @@ fn main() {
 
 							let old_bm = SelectObject(mem_dc, mem_bm as LPVOID);
 
-							let _copied = StretchDIBits(mem_dc, 0, 0, w, h, 0, 0, w, h, bitmap_data.as_ptr() as *const _, &bmi as *const _, 0, SRCCOPY);
+							let _copied = StretchDIBits(
+								mem_dc,
+								0,
+								0,
+								w,
+								h,
+								0,
+								0,
+								w,
+								h,
+								bitmap_data.as_ptr() as *const _,
+								&bmi as *const _,
+								0,
+								SRCCOPY,
+							);
 							let _ok = BitBlt(hdc, 0, 0, w, h, mem_dc, 0, 0, SRCCOPY);
 
 							SelectObject(mem_dc, old_bm);
@@ -162,7 +185,6 @@ fn main() {
 							// println!("+ {} {}", w, h);
 						}
 					}
-
 				};
 
 				let cb = RenderEvent {
@@ -171,7 +193,7 @@ fn main() {
 				};
 
 				handle_message(scwnd, Message::RenderTo(cb));
-			},
+			}
 
 			Event::WindowEvent { event, window_id: _ } => {
 				match event {
@@ -180,23 +202,23 @@ fn main() {
 						println!("destroy");
 						handle_message(scwnd, Message::Destroy);
 						*control_flow = ControlFlow::Exit
-					},
+					}
 
 					WindowEvent::CloseRequested => {
 						println!("close");
 						*control_flow = ControlFlow::Exit
-					},
+					}
 
 					WindowEvent::Resized(size) => {
 						// println!("{:?}, size: {:?}", event, size);
 						let (width, height): (u32, u32) = size.into();
 						handle_message(scwnd, Message::Size { width, height });
-					},
+					}
 
 					WindowEvent::Focused(enter) => {
 						println!("focus {}", enter);
 						handle_message(scwnd, Message::Focus { enter });
-					},
+					}
 
 					WindowEvent::ModifiersChanged(modifiers) => {
 						let mut keys = 0;
@@ -210,7 +232,7 @@ fn main() {
 							keys |= KEYBOARD_STATES::ALT_KEY_PRESSED;
 						}
 						current_modifiers = keys.into();
-					},
+					}
 
 					WindowEvent::CursorEntered { device_id: _ } => {
 						println!("mouse enter");
@@ -225,7 +247,7 @@ fn main() {
 						};
 
 						handle_message(scwnd, Message::Mouse(event));
-					},
+					}
 
 					WindowEvent::CursorLeft { device_id: _ } => {
 						println!("mouse leave");
@@ -240,7 +262,7 @@ fn main() {
 						};
 
 						handle_message(scwnd, Message::Mouse(event));
-					},
+					}
 
 					WindowEvent::CursorMoved { position, .. } => {
 						mouse_pos = position.into();
@@ -256,7 +278,7 @@ fn main() {
 						};
 
 						handle_message(scwnd, Message::Mouse(event));
-					},
+					}
 
 					WindowEvent::MouseInput { state, button, .. } => {
 						mouse_button = match button {
@@ -268,7 +290,11 @@ fn main() {
 						println!("mouse {:?} as {:?}", mouse_button, mouse_pos);
 
 						let event = MouseEvent {
-							event: if state == ElementState::Pressed { MOUSE_EVENTS::MOUSE_DOWN } else { MOUSE_EVENTS::MOUSE_UP },
+							event: if state == ElementState::Pressed {
+								MOUSE_EVENTS::MOUSE_DOWN
+							} else {
+								MOUSE_EVENTS::MOUSE_UP
+							},
 							button: mouse_button,
 							modifiers: current_modifiers.clone(),
 							pos: sciter::types::POINT {
@@ -278,23 +304,31 @@ fn main() {
 						};
 
 						handle_message(scwnd, Message::Mouse(event));
-					},
+					}
 
 					WindowEvent::KeyboardInput { input, .. } => {
-						println!("key {} {}", input.scancode, if input.state == ElementState::Pressed { "down" } else { "up" });
+						println!(
+							"key {} {}",
+							input.scancode,
+							if input.state == ElementState::Pressed { "down" } else { "up" }
+						);
 
 						let event = KeyboardEvent {
-							event: if input.state == ElementState::Pressed { KEY_EVENTS::KEY_DOWN } else { KEY_EVENTS::KEY_UP },
+							event: if input.state == ElementState::Pressed {
+								KEY_EVENTS::KEY_DOWN
+							} else {
+								KEY_EVENTS::KEY_UP
+							},
 							code: input.scancode,
 							modifiers: current_modifiers.clone(),
 						};
 
 						handle_message(scwnd, Message::Keyboard(event));
-					},
+					}
 
-					_	=> (),
+					_ => (),
 				}
-			},
+			}
 			_ => (),
 		}
 	});

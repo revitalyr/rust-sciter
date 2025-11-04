@@ -4,7 +4,7 @@
 
 extern crate sciter;
 
-use sciter::Element;
+use sciter::{Element, BEHAVIOR_EVENTS, PHASE_MASK};
 use self::sciter::dom::event::*;
 use self::sciter::dom::HELEMENT;
 use self::sciter::value::Value;

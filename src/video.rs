@@ -5,8 +5,8 @@ Host application can render custom video streams using `<video>` infrastructure.
 */
 
 
-use capi::sctypes::{UINT, LPCBYTE, LPCSTR};
-use capi::scom::som_passport_t;
+use crate::capi::sctypes::{UINT, LPCBYTE, LPCSTR};
+use crate::capi::scom::som_passport_t;
 
 /// A type alias for Sciter functions that return `bool`.
 pub type Result<T> = ::std::result::Result<T, ()>;

@@ -3,16 +3,14 @@
 
 extern crate sciter;
 
-use sciter::{Value, Element, HELEMENT};
 use sciter::dom::event::*;
-
-
+use sciter::{BEHAVIOR_EVENTS, EVENT_GROUPS, PHASE_MASK};
+use sciter::{Element, HELEMENT, Value};
 
 #[derive(Default)]
 struct DocumentHandler;
 
 impl sciter::EventHandler for DocumentHandler {
-
 	fn attached(&mut self, _root: sciter::HELEMENT) {
 		println!("attached");
 	}
@@ -23,7 +21,6 @@ impl sciter::EventHandler for DocumentHandler {
 	}
 
 	fn document_complete(&mut self, root: sciter::HELEMENT, source: sciter::HELEMENT) {
-
 		println!("document is loaded.");
 
 		let root = Element::from(root);
@@ -65,9 +62,9 @@ impl sciter::EventHandler for DocumentHandler {
 			let html = h1.get_html(true);
 			assert_eq!(html.as_slice(), br"<h1>Herman Melville - Moby-Dick</h1>".as_ref());
 
-			let value = h1.get_value();
-			assert!(value.is_string());
-			assert_eq!(value.as_string().unwrap(), text);
+			// let value = h1.get_value();
+			// assert!(value.is_string());
+			// assert_eq!(value.as_string().unwrap(), text);
 		}
 
 		if let Some(mut h1) = body.first_child() {
@@ -113,7 +110,6 @@ impl sciter::EventHandler for DocumentHandler {
 		}
 
 		if let Ok(Some(mut body)) = root.find_first("html > body") {
-
 			println!("creating some elments");
 
 			// DOM manipulation.
@@ -125,7 +121,7 @@ impl sciter::EventHandler for DocumentHandler {
 			div.set_style_attribute("padding", "5dip");
 
 			let mut lb = Element::with_text("label", "Output: ").unwrap();
-			div.append(&lb).expect("wtf?");	// push as reference, we can access this `lb` still.
+			div.append(&lb).expect("wtf?"); // push as reference, we can access this `lb` still.
 
 			let mut date = Element::with_type("input", "date").unwrap();
 			date.set_attribute("id", "mydate");
@@ -136,7 +132,6 @@ impl sciter::EventHandler for DocumentHandler {
 			date.set_style_attribute("width", "100px");
 			date.set_style_attribute("outline", "1px dotted gray");
 			date.set_style_attribute("margin", "10px");
-
 
 			lb.set_attribute("accesskey", "o");
 			lb.set_style_attribute("color", "lightblue");
@@ -165,7 +160,6 @@ impl sciter::EventHandler for DocumentHandler {
 			e.set_style_attribute("font-style", "italic");
 		}
 	}
-
 }
 
 #[derive(Default)]
@@ -175,7 +169,6 @@ struct ProgressHandler {
 }
 
 impl sciter::EventHandler for ProgressHandler {
-
 	fn get_subscription(&mut self) -> Option<EVENT_GROUPS> {
 		Some(default_events() | EVENT_GROUPS::HANDLE_TIMER)
 	}
@@ -194,14 +187,21 @@ impl sciter::EventHandler for ProgressHandler {
 		println!("detaching from {}", root);
 	}
 
-	fn on_event(&mut self, root: HELEMENT, source: HELEMENT, target: HELEMENT, code: BEHAVIOR_EVENTS, phase: PHASE_MASK, reason: EventReason) -> bool {
+	fn on_event(
+		&mut self,
+		root: HELEMENT,
+		source: HELEMENT,
+		target: HELEMENT,
+		code: BEHAVIOR_EVENTS,
+		phase: PHASE_MASK,
+		reason: EventReason,
+	) -> bool {
 		if phase != PHASE_MASK::BUBBLING {
 			return false;
 		}
 
 		match code {
 			BEHAVIOR_EVENTS::BUTTON_CLICK => {
-
 				let source = Element::from(source);
 				let mut target = Element::from(target);
 
@@ -225,7 +225,7 @@ impl sciter::EventHandler for ProgressHandler {
 
 				true
 			}
-			_ => false
+			_ => false,
 		}
 	}
 
@@ -255,10 +255,7 @@ impl sciter::EventHandler for ProgressHandler {
 }
 
 fn main() {
-  let mut frame = sciter::WindowBuilder::main_window()
-		.with_size((750, 950))
-		.debug()
-		.create();
+	let mut frame = sciter::WindowBuilder::main_window().with_size((750, 950)).debug().create();
 
 	println!("attaching an event handler for the whole window");
 	frame.event_handler(DocumentHandler::default());

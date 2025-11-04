@@ -5,8 +5,8 @@ and [Sciter Object Model](http://sciter.com/developers/for-native-gui-programmer
 
 */
 use std::sync::atomic::{AtomicI32, Ordering};
-use capi::sctypes::{LPVOID, LPCSTR};
-pub use capi::scom::*;
+use crate::capi::sctypes::{LPVOID, LPCSTR};
+pub use crate::capi::scom::*;
 
 
 /// Get the index of an interned string.

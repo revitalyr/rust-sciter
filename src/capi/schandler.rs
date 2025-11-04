@@ -2,7 +2,7 @@
 
 #![allow(dead_code)]
 
-use capi::sctypes::{LPCVOID, LPVOID};
+use crate::capi::sctypes::{LPCVOID, LPVOID};
 
 type Opaque = LPCVOID;
 
@@ -79,7 +79,7 @@ impl NativeHandler {
 		let pobj = param as *mut T;
 		if !pobj.is_null() {
 			// and drop it
-			unsafe { Box::from_raw(pobj) };
+			unsafe { let _ = Box::from_raw(pobj); };
 		}
 	}
 }

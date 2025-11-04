@@ -16,9 +16,9 @@ that is a root widget of Sciter window on Linux/GTK.
 extern crate sciter;
 
 fn main() {
-  let mut frame = sciter::Window::new();
-  frame.load_file("minimal.htm");
-  frame.run_app();
+	let mut frame = sciter::Window::new();
+	frame.load_file("minimal.htm");
+	frame.run_app();
 }
 ```
 
@@ -26,22 +26,20 @@ Also you can register a [host](../host/trait.HostHandler.html) and a [DOM](../do
 
 .
 */
-use ::{_API};
-use capi::sctypes::*;
+use crate::_API;
+use crate::capi::sctypes::*;
 
-use platform::{BaseWindow, OsWindow};
-use host::{Host, HostHandler};
-use dom::{self, event::{EventHandler}};
 use crate::Value;
+use crate::dom::{self, event::EventHandler};
+use crate::host::{Host, HostHandler};
+use crate::platform::{BaseWindow, OsWindow};
 
 use std::rc::Rc;
-
 
 /// `SCITER_CREATE_WINDOW_FLAGS` alias.
 pub type Flags = SCITER_CREATE_WINDOW_FLAGS;
 
-pub use capi::scdef::{SCITER_CREATE_WINDOW_FLAGS};
-
+pub use crate::capi::scdef::SCITER_CREATE_WINDOW_FLAGS;
 
 /// Per-window Sciter engine options.
 ///
@@ -62,28 +60,26 @@ pub enum Options {
 	TransparentWindow(bool),
 
 	/// Transparent windows support. When enabled, window uses per pixel alpha
-  /// (e.g. [`WS_EX_LAYERED`](https://msdn.microsoft.com/en-us/library/ms997507.aspx?f=255&MSPPError=-2147217396) window).
+	/// (e.g. [`WS_EX_LAYERED`](https://msdn.microsoft.com/en-us/library/ms997507.aspx?f=255&MSPPError=-2147217396) window).
 	AlphaWindow(bool),
 
-  /// global or per-window; enables Sciter Inspector for this window, must be called before loading HTML.
-  DebugMode(bool),
+	/// global or per-window; enables Sciter Inspector for this window, must be called before loading HTML.
+	DebugMode(bool),
 
-  /// global or per-window; value: combination of [`SCRIPT_RUNTIME_FEATURES`](../enum.SCRIPT_RUNTIME_FEATURES.html) flags.
+	/// global or per-window; value: combination of [`SCRIPT_RUNTIME_FEATURES`](../enum.SCRIPT_RUNTIME_FEATURES.html) flags.
 	ScriptFeatures(u8),
 
 	/// Window is main, will destroy all other dependent windows on close, since 4.3.0.12
 	MainWindow(bool),
 
-  /// global or per-window; value: `true` - `1px` in CSS is treated as `1dip`, otherwise `1px` is a physical pixel (by default).
-  ///
-  /// since [4.4.5.0](https://rawgit.com/c-smile/sciter-sdk/aafb625bb0bc317d79c0a14d02b5730f6a02b48a/logfile.htm).
+	/// global or per-window; value: `true` - `1px` in CSS is treated as `1dip`, otherwise `1px` is a physical pixel (by default).
+	///
+	/// since [4.4.5.0](https://rawgit.com/c-smile/sciter-sdk/aafb625bb0bc317d79c0a14d02b5730f6a02b48a/logfile.htm).
 	LogicalPixel(bool),
 }
 
-
 /// Sciter window.
-pub struct Window
-{
+pub struct Window {
 	base: OsWindow,
 	host: Rc<Host>,
 }
@@ -91,7 +87,6 @@ pub struct Window
 // `Window::new()` is rather expensive operation to make it default.
 #[allow(clippy::new_without_default)]
 impl Window {
-
 	/// Create a new main window.
 	// #[cfg(not(feature = "windowless"))]
 	#[cfg_attr(feature = "windowless", deprecated = "Sciter.Lite doesn't have OS windows in windowless mode.")]
@@ -102,16 +97,18 @@ impl Window {
 	/// Create a new window with the specified position, flags and an optional parent window.
 	#[cfg_attr(feature = "windowless", deprecated = "Sciter.Lite doesn't have OS windows in windowless mode.")]
 	pub fn create(rect: RECT, flags: Flags, parent: Option<HWINDOW>) -> Window {
-		if cfg!(feature = "windowless")
-		{
+		if cfg!(feature = "windowless") {
 			panic!("Sciter.Lite doesn't have OS windows in windowless mode!");
 		}
 
 		let mut base = OsWindow::new();
-		let hwnd = base.create(rect, flags as UINT, parent.unwrap_or(0 as HWINDOW));
+		let hwnd = base.create(rect, flags.bits(), parent.unwrap_or(0 as HWINDOW));
 		assert!(!hwnd.is_null());
 
-		let wnd = Window { base: base, host: Rc::new(Host::attach(hwnd))};
+		let wnd = Window {
+			base: base,
+			host: Rc::new(Host::attach(hwnd)),
+		};
 		return wnd;
 	}
 
@@ -125,7 +122,10 @@ impl Window {
 		let _ = &OsWindow::new;
 
 		assert!(!hwnd.is_null());
-		Window { base: OsWindow::from(hwnd), host: Rc::new(Host::attach(hwnd)) }
+		Window {
+			base: OsWindow::from(hwnd),
+			host: Rc::new(Host::attach(hwnd)),
+		}
 	}
 
 	/// Attach Sciter to an existing native window and intercept its messages.
@@ -137,17 +137,15 @@ impl Window {
 		assert!(!hwnd.is_null());
 
 		#[cfg(target_pointer_width = "64")]
-		#[link(name="user32")]
-		extern "system"
-		{
+		#[link(name = "user32")]
+		unsafe extern "system" {
 			fn SetWindowLongPtrW(hwnd: HWINDOW, index: i32, new_data: WndProc) -> WndProc;
 			fn CallWindowProcW(prev: WndProc, hwnd: HWINDOW, msg: UINT, wp: WPARAM, lp: LPARAM) -> LRESULT;
 		}
 
 		#[cfg(target_pointer_width = "32")]
-		#[link(name="user32")]
-		extern "system"
-		{
+		#[link(name = "user32")]
+		extern "system" {
 			fn SetWindowLongW(hwnd: HWINDOW, index: i32, new_data: WndProc) -> WndProc;
 			fn CallWindowProcW(prev: WndProc, hwnd: HWINDOW, msg: UINT, wp: WPARAM, lp: LPARAM) -> LRESULT;
 		}
@@ -158,7 +156,7 @@ impl Window {
 		#[cfg(target_pointer_width = "32")]
 		let set_window_proc = SetWindowLongW;
 
-		type WndProc = extern "system" fn (hwnd: HWINDOW, msg: UINT, wp: WPARAM, lp: LPARAM) -> LRESULT;
+		type WndProc = extern "system" fn(hwnd: HWINDOW, msg: UINT, wp: WPARAM, lp: LPARAM) -> LRESULT;
 		type PrevProcs = std::collections::HashMap<HWINDOW, WndProc>;
 
 		thread_local! {
@@ -194,7 +192,10 @@ impl Window {
 			procs.borrow_mut().insert(hwnd, prev_proc);
 		});
 
-		Window { base: OsWindow::from(hwnd), host: Rc::new(Host::attach(hwnd)) }
+		Window {
+			base: OsWindow::from(hwnd),
+			host: Rc::new(Host::attach(hwnd)),
+		}
 	}
 
 	/// Obtain a reference to [`Host`](../host/struct.Host.html) which offers some advanced control over the Sciter engine instance.
@@ -215,15 +216,15 @@ impl Window {
 		self.host.attach_handler(handler);
 	}
 
-  /// Register an archive produced by `packfolder` tool.
+	/// Register an archive produced by `packfolder` tool.
 	///
 	/// The resources can be accessed via the `this://app/` URL.
 	///
 	/// See documentation of the [`Archive`](../host/struct.Archive.html).
 	///
-  pub fn archive_handler(&mut self, resource: &[u8]) -> Result<(), ()> {
-    self.host.register_archive(resource)
-  }
+	pub fn archive_handler(&mut self, resource: &[u8]) -> Result<(), ()> {
+		self.host.register_archive(resource)
+	}
 
 	/// Register a native event handler for the specified behavior name.
 	///
@@ -265,7 +266,7 @@ impl Window {
 	/// ```
 	pub fn register_behavior<Factory>(&mut self, name: &str, factory: Factory)
 	where
-		Factory: Fn() -> Box<dyn EventHandler> + 'static
+		Factory: Fn() -> Box<dyn EventHandler> + 'static,
 	{
 		self.host.register_behavior(name, factory);
 	}
@@ -322,8 +323,8 @@ impl Window {
 
 	/// Set various Sciter engine options, see the [`Options`](enum.Options.html).
 	pub fn set_options(&self, options: Options) -> Result<(), ()> {
-		use capi::scdef::SCITER_RT_OPTIONS::*;
 		use self::Options::*;
+		use crate::capi::scdef::SCITER_RT_OPTIONS::*;
 		let (option, value) = match options {
 			SmoothScroll(enable) => (SCITER_SMOOTH_SCROLL, enable as usize),
 			FontSmoothing(technology) => (SCITER_FONT_SMOOTHING, technology as usize),
@@ -335,13 +336,8 @@ impl Window {
 			LogicalPixel(enable) => (SCITER_SET_PX_AS_DIP, enable as usize),
 		};
 		let ok = (_API.SciterSetOption)(self.get_hwnd(), option, value);
-		if ok != 0 {
-			Ok(())
-		} else {
-			Err(())
-		}
+		if ok != 0 { Ok(()) } else { Err(()) }
 	}
-
 
 	/// Set a global variable by its path to a single window.
 	///
@@ -353,11 +349,7 @@ impl Window {
 	pub fn set_variable(&self, path: &str, value: Value) -> dom::Result<()> {
 		let ws = s2u!(path);
 		let ok = (_API.SciterSetVariable)(self.get_hwnd(), ws.as_ptr(), value.as_cptr());
-		if ok == dom::SCDOM_RESULT::OK {
-			Ok(())
-		} else {
-			Err(ok)
-		}
+		if ok == dom::SCDOM_RESULT::OK { Ok(()) } else { Err(ok) }
 	}
 
 	/// Get a global variable by its path.
@@ -370,11 +362,7 @@ impl Window {
 		let ws = s2u!(path);
 		let mut value = Value::new();
 		let ok = (_API.SciterGetVariable)(self.get_hwnd(), ws.as_ptr(), value.as_mut_ptr());
-		if ok == dom::SCDOM_RESULT::OK {
-			Ok(value)
-		} else {
-			Err(ok)
-		}
+		if ok == dom::SCDOM_RESULT::OK { Ok(value) } else { Err(ok) }
 	}
 
 	/// Show window and run the main app message loop until the main window is closed.
@@ -394,7 +382,6 @@ impl Window {
 	}
 }
 
-
 /// Generic rectangle struct.
 /// NOTE that this is different from the [`RECT`](../types/struct.RECT.html) type as it specifies width and height.
 #[derive(Clone, Copy)]
@@ -402,9 +389,8 @@ pub struct Rectangle {
 	pub x: i32,
 	pub y: i32,
 	pub width: i32,
-	pub height: i32
+	pub height: i32,
 }
-
 
 /// Builder pattern for window creation.
 ///
@@ -426,21 +412,15 @@ pub struct Builder {
 
 // Note: https://rust-lang-nursery.github.io/api-guidelines/type-safety.html#non-consuming-builders-preferred
 impl Builder {
-
 	/// Main application window (resizeable with min/max buttons and title).
 	/// Will terminate the app on close.
 	pub fn main_window() -> Self {
-		Builder::main()
-			.resizeable()
-			.closeable()
-			.with_title()
+		Builder::main().resizeable().closeable().with_title()
 	}
 
 	/// Popup window (with min/max buttons and title).
 	pub fn popup_window() -> Self {
-		Builder::popup()
-			.closeable()
-			.with_title()
+		Builder::popup().closeable().with_title()
 	}
 
 	/// Child window style. if this flag is set all other flags are ignored.
@@ -450,7 +430,7 @@ impl Builder {
 
 	/// If you want to start from scratch.
 	pub fn none() -> Self {
-		Builder::with_flags(SCITER_CREATE_WINDOW_FLAGS::SW_CHILD)	// 0
+		Builder::with_flags(SCITER_CREATE_WINDOW_FLAGS::SW_CHILD) // 0
 	}
 
 	/// Start with some flags.
@@ -552,7 +532,7 @@ impl Builder {
 	}
 
 	fn and(mut self, flag: Flags) -> Self {
-		let masked = self.flags as u32 & !(flag as u32);
+		let masked = self.flags.bits() & !(flag.bits());
 		self.flags = unsafe { ::std::mem::transmute(masked) };
 		self
 	}

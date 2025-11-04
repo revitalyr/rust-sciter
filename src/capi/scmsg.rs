@@ -3,10 +3,10 @@
 #![allow(non_camel_case_types, non_snake_case)]
 #![allow(dead_code)]
 
-use capi::sctypes::*;
-use capi::scdef::{GFX_LAYER, ELEMENT_BITMAP_RECEIVER};
-use capi::scdom::HELEMENT;
-use capi::scbehavior::{MOUSE_BUTTONS, MOUSE_EVENTS, KEY_EVENTS, KEYBOARD_STATES};
+use crate::capi::sctypes::*;
+use crate::capi::scdef::{GFX_LAYER, ELEMENT_BITMAP_RECEIVER};
+use crate::capi::scdom::HELEMENT;
+use crate::capi::scbehavior::{MOUSE_BUTTONS, MOUSE_EVENTS, KEY_EVENTS, KEYBOARD_STATES};
 
 
 #[repr(C)]

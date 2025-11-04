@@ -1,5 +1,5 @@
 //! Export platform-dependent types used by Sciter.
 
-pub use capi::sctypes::*;
-pub use capi::scdef::*;
-pub use capi::scvalue::VALUE;
+pub use crate::capi::scdef::*;
+pub use crate::capi::sctypes::*;
+pub use crate::capi::scvalue::VALUE;

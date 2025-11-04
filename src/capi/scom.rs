@@ -8,12 +8,11 @@ and https://sciter.com/developers/for-native-gui-programmers/sciter-object-model
 #![allow(non_snake_case, non_camel_case_types)]
 #![allow(dead_code)]
 
-use capi::sctypes::*;
-use capi::scvalue::VALUE;
+use crate::capi::sctypes::*;
+use crate::capi::scvalue::VALUE;
 
 /// An atom value that uniquely identifies the name being registered.
 pub type som_atom_t = u64;
-
 
 /// `som_asset_t` is a structure that a custom native object must be derived from.
 #[repr(C)]
@@ -45,7 +44,6 @@ pub(crate) struct som_asset_class_t {
 	pub get_passport: extern "C" fn(thing: *mut som_asset_t) -> *const som_passport_t,
 }
 
-
 /// Defines properties and methods of an asset.
 #[repr(C)]
 pub struct som_passport_t {
@@ -75,7 +73,6 @@ pub struct som_passport_t {
 	/// pst.n_properties = 2;
 	/// pst.properties = Box::into_raw(props) as *const _;
 	/// ```
-
 	pub properties: *const som_property_def_t,
 
 	/// Properties count.
@@ -130,7 +127,6 @@ impl Default for som_passport_t {
 	}
 }
 
-
 /// [`som_passport_t`](struct.som_passport_t.html#structfield.flags) flags.
 #[repr(u64)]
 #[derive(Debug, PartialOrd, PartialEq)]
@@ -143,7 +139,6 @@ pub enum som_passport_flags {
 	/// An asset may have new properties added by script.
 	EXTENDABLE = 1,
 }
-
 
 /// Property of an asset.
 #[repr(C)]
